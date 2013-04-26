@@ -1,5 +1,6 @@
 /*
 ujson4c decoder helper 1.0
+Developed by ESN, an Electronic Arts Inc. studio. 
 Copyright (c) 2013, Electronic Arts Inc.
 All rights reserved.
 
@@ -10,7 +11,7 @@ notice, this list of conditions and the following disclaimer.
 * Redistributions in binary form must reproduce the above copyright
 notice, this list of conditions and the following disclaimer in the
 documentation and/or other materials provided with the distribution.
-* Neither the name of the Electronic Arts Inc. nor the
+* Neither the name of ESN, Electronic Arts Inc. nor the
 names of its contributors may be used to endorse or promote products
 derived from this software without specific prior written permission.
 
@@ -26,7 +27,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Uses UltraJSON library:
-Copyright (c) 2011-2013, ESN Social Software AB and Jonas Tarnstrom
+Copyright (c) 2013, Electronic Arts Inc.
 All rights reserved.
 www.github.com/esnme/ultrajson
 */
