@@ -7,7 +7,7 @@ Usage
 ============
 Copy all of the files from /src and /3rdparty into a folder of choice in your own project. #include ujdecode.h read more about the API in ujdecode.h
 
-.. code-block:: c
+    code-block:: python
     UJObject obj;
     void *state;
     const char input[] = "{\"name\": \"John Doe\", \"age\": 31, \"number\": 1337.0, \"address\": { \"city\": \"Uppsala\"} }";
