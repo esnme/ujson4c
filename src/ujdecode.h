@@ -69,59 +69,57 @@ typedef struct __UJHeapFuncs
 } UJHeapFuncs;
 
 /*
+===============================================================================
 Decodes an input text octet stream into a JSON object structure
 
-Usage:
-Declare a UJHeapFuncs structure on the stack if you want to manage your own heap:
+Arguments:
+  input - JSON data to decode in ANSI or UTF-8 format
+  cbInput - Length of input in bytes
+  hf - Heap functions, see UJHeapFuncs. Optional may be NULL
+  outState - Outputs the decoder state.
+
+Not about heap functions:
+Declare a UJHeapFuncs structure on the stack if you want to manage your own heap
+and pass it as the hf argument to UJDecode.
   initalHeap    - Pointer to a buffer for the initial heap handled by the caller. 
                   Preferably stored on the stack. MUST not be smaller than 1024 bytes
   cbInitialHeap - Size of the initial heap in bytes
   malloc        - Pointer to malloc function  
   free          - Pointer to free function
-  realloc       - Pointer to realloc function
-
-Arguments:
-  input - JSON data to decode in ANSI or UTF-8 format
-  cbInput - Length of input in bytes
-  hf - Heap functions, see UJHeapFuncs. Optional
-  outState - Outputs the decoder state. Output may be NULL
-
+  realloc       - Pointer to realloc function  
+  
 Returns a JSON object structure representation or NULL in case of error.
-Use UJGetError get obtain error message
+Use UJGetError get obtain error message.
 
 Example usage:
 
 const char *input;
 size_t cbInput;
 void *state;
-char buffer[32768];
-UJHeapFuncs hf;
-hf.cbInitialHeap = sizeof(buffer);
-hf.initalHeap = buffer;
-hf.free = free;
-hf.malloc = malloc;
-hf.realloc = realloc;
-UJObject obj;
 
-obj = UJDecode(input, cbInput, &hf, &state);
+obj = UJDecode(input, cbInput, NULL, &state);
 
 if (obj == NULL)
   printf ("Error: %s\n", UJGetError(state));
 
-...Poke around in returned obj...
-...Free state...
-UJFree(state);
+  ...Poke around in returned obj...
 
+UJFree(state);
+===============================================================================
 */
 UJObject UJDecode(const char *input, size_t cbInput, UJHeapFuncs *hf, void **outState);
 
 /*
+===============================================================================
 Called to free the decoder state
+===============================================================================
 */
 void UJFree(void *state);
 
 /*
+===============================================================================
 Check if object is of certain type 
+===============================================================================
 */
 int UJIsNull(UJObject obj);
 int UJIsTrue(UJObject obj);
@@ -135,17 +133,22 @@ int UJIsArray(UJObject obj);
 int UJIsObject(UJObject obj);
 
 /*
+===============================================================================
 See UJTypes enum for possible return values
+===============================================================================
 */
 int UJGetType(UJObject obj);
 
 /*
+===============================================================================
 Called to initiate the iterator of an array object
 May return NULL in case array is empty
+===============================================================================
 */
 void *UJBeginArray(UJObject arrObj);
 
 /*
+===============================================================================
 Iterates an array object
 
 Arguments:
@@ -155,17 +158,21 @@ outObj - Object in array
 Usage:
 Get initial iterator from call to UJBeginArray. 
 Call this function until it returns 0
+===============================================================================
 */
 int UJIterArray(void **iter, UJObject *outObj);
 
-
 /*
+===============================================================================
 Called to initiate the iterator of an Object (key-value structure)
 May return NULL in case Object is empty
+
+===============================================================================
 */
 void *UJBeginObject(UJObject objObj);
 
 /*
+===============================================================================
 Iterates an Object
 
 Arguments:
@@ -176,12 +183,14 @@ outValue - Value object
 Usage:
 Get initial iterator from call to UJBeginObject
 Call this function until it returns 0
+===============================================================================
 */
 int UJIterObject(void **iter, UJString *outKey, UJObject *outValue);
 
 /*
 
 /*
+===============================================================================
 Unpacks an Object by matching the key name with the requested format 
 
 Each key name needs to be matched by the character in the format string 
@@ -204,54 +213,68 @@ outObjects - Output value objects
 
 Return value:
 Returns number of key pairs matched or -1 on error
-
+===============================================================================
 */
 int UJObjectUnpack(UJObject objObj, int keys, const char *format, const wchar_t **keyNames, UJObject *outObjects);
 
 /*
+===============================================================================
 Returns the value of a double/decimal object as double 
 Check for UJIsDouble before calling 
+===============================================================================
 */
 double UJGetDouble(UJObject obj);
 
 /*
+===============================================================================
 Returns the value of a double, long and long long value as a double. 
 If value is not any of these 0.0 is returned.
+===============================================================================
 */
 double UJGetNumericAsDouble(UJObject obj);
 
 /*
+===============================================================================
 Returns the value of a double, long or long long value as an integer.
 If value is not any of these types 0 is returned.
 
 Truncation may arrise depending on machine word sizes and presence of decimals 
 when converting double to int.
 Check for UJIsDouble, UJIsLong or UJIsLongLong before calling 
+===============================================================================
 */
 int UJGetNumericAsInteger(UJObject obj);
 
 /*
+===============================================================================
 Returns the value of an integer decoded as long (32-bit on most platforms).
 Check for UJIsLong before calling 
+===============================================================================
 */
 long UJGetLong(UJObject obj);
 
 /*
+===============================================================================
 Returns the value of an integer decoded as long long (64-bit) as a long long value.
 Check for UJIsLongLong before calling 
+===============================================================================
 */
 long long UJGetLongLong(UJObject obj);
 
 /*
-Returns the value of a string value as a wide character string pointer. Caller must not free returned pointer.
+===============================================================================
+Returns the value of a string value as a wide character string pointer. Caller must NOT free returned pointer.
 cchOutBuffer contains the character length of the returned string. 
 Check for UJIsString before calling
+===============================================================================
 */
 wchar_t *UJGetString(UJObject obj, size_t *cchOutBuffer);
 
 /*
+===============================================================================
 Returns last error message if any as a string or NULL. 
-Caller must not free returned pointer.
+Caller must NOT free returned pointer.
+===============================================================================
 */
 const char *UJGetError(void *state);
 
