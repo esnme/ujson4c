@@ -11,27 +11,32 @@ Example::
 
     UJObject obj;
     void *state;
-    const char input[] = "{\"name\": \"John Doe\", \"age\": 31, \"number\": 1337.0, \"address\": { \"city\": \"Uppsala\"} }";
+    const char input[] = "{\"name\": \"John Doe\", \"age\": 31, \"number\": 1337.37, \"address\": { \"city\": \"Uppsala\", \"population\": 9223372036854775807 } }";
     size_t cbInput = sizeof(input) - 1;
-    const wchar_t *personKeys[4] = { L"name", L"age", L"number", L"address"};
+
+    const wchar_t *personKeys[] = { L"name", L"age", L"number", L"address"};
+    UJObject oName, oAge, oNumber, oAddress;
     
-    UJObject personObjs[4];
     obj = UJDecode(input, cbInput, NULL, &state);
     
-    if (UJObjectUnpack(obj, 4, "SNNO", personKeys, personObjs) == 4)
+    if (UJObjectUnpack(obj, 4, "SNNO", personKeys, &oName, &oAge, &oNumber, &oAddress) == 4)
     {
-        const wchar_t *addressKeys[1] = { L"city" };
-        UJObject addressObjs[1];
-    
-        const wchar_t *name = UJGetString(personObjs[0], NULL);
-        int age = UJGetNumericAsInteger(personObjs[1]);
-        double number = UJGetNumericAsDouble(personObjs[2]);
-    
-        if (UJObjectUnpack(personObjs[3], 1, "S", addressKeys, addressObjs) == 1)
+        const wchar_t *addressKeys[] = { L"city", L"population" };
+        UJObject oCity, oPopulation;
+        
+        const wchar_t *name = UJReadString(oName, NULL);
+        int age = UJNumericInt(oAge);
+        double number = UJNumericFloat(oNumber);
+
+        if (UJObjectUnpack(oAddress, 2, "SN", addressKeys, &oCity, &oPopulation) == 2)
         {
-            const wchar_t *city = UJGetString(addressObjs[0], NULL);
+            const wchar_t *city;
+            long long population;
+            city = UJReadString(oCity, NULL);
+            population = UJNumericLongLong(oPopulation);
         }
     }
+    
     UJFree(state);
     
 
