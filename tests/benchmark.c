@@ -74,25 +74,25 @@ void dumpObject(int level, void *state, UJObject obj)
 	case UJT_Long:
 		{
 			prefixLine(level);
-			fprintf (stdout, "%ld\n", UJGetLong(obj));
+			fprintf (stdout, "%ld\n", (long) UJNumericLongLong(obj));
 			break;
 		}
 	case UJT_LongLong:
 		{
 			prefixLine(level);
-			fprintf (stdout, "%lld\n", UJGetLongLong(obj));
+			fprintf (stdout, "%lld\n", UJNumericLongLong(obj));
 			break;
 		}
 	case UJT_Double:
 		{
 			prefixLine(level);
-			fprintf (stdout, "%f\n", UJGetDouble(obj));
+			fprintf (stdout, "%f\n", UJNumericFloat(obj));
 			break;
 		}
 	case UJT_String:
 		{
 			size_t len;
-			fwprintf (stdout, L"%s\n", UJGetString(obj, &len));
+			fwprintf (stdout, L"%s\n", UJReadString(obj, &len));
 			break;
 		}
 	case UJT_Array:
