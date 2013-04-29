@@ -49,50 +49,74 @@ void prefixLine(int level)
 	}
 }
 
+
 void dumpObject(int level, void *state, UJObject obj)
 {
 	switch (UJGetType(obj))
 	{
 	case UJT_Null:
 		{
+#ifdef VERBOSE_DUMP
 			prefixLine(level);
 			fprintf (stdout, "NULL\n");
+#endif
 			break;
 		}
 	case UJT_True:
 		{
+#ifdef VERBOSE_DUMP
 			prefixLine(level);
 			fprintf (stdout, "True\n");
+#endif
 			break;
 		}
 	case UJT_False:
 		{
+#ifdef VERBOSE_DUMP
 			prefixLine(level);
 			fprintf (stdout, "False\n");
+#endif
 			break;
 		}
 	case UJT_Long:
 		{
+			long value = (long) UJNumericLongLong(obj);
+
+#ifdef VERBOSE_DUMP
 			prefixLine(level);
-			fprintf (stdout, "%ld\n", (long) UJNumericLongLong(obj));
+			fprintf (stdout, "%ld\n", value);
+#endif
 			break;
 		}
 	case UJT_LongLong:
 		{
+			long long value = UJNumericLongLong(obj);
+
+#ifdef VERBOSE_DUMP
 			prefixLine(level);
-			fprintf (stdout, "%lld\n", UJNumericLongLong(obj));
+			fprintf (stdout, "%lld\n", value);
+#endif
 			break;
 		}
 	case UJT_Double:
 		{
+			double value = UJNumericFloat(obj);
+
+#ifdef VERBOSE_DUMP
 			prefixLine(level);
-			fprintf (stdout, "%f\n", UJNumericFloat(obj));
+			fprintf (stdout, "%f\n", value);
+#endif
 			break;
 		}
 	case UJT_String:
 		{
 			size_t len;
-			fwprintf (stdout, L"%s\n", UJReadString(obj, &len));
+			const wchar_t *value;
+			value = UJReadString(obj, &len);
+
+#ifdef VERBOSE_DUMP
+			fwprintf (stdout, L"%s\n", value);
+#endif
 			break;
 		}
 	case UJT_Array:
@@ -100,7 +124,9 @@ void dumpObject(int level, void *state, UJObject obj)
 			void *iter = NULL;
 			UJObject objiter = NULL;
 
+#ifdef VERBOSE_DUMP
 			fputc('[', stdout);
+#endif
 
 			iter = UJBeginArray(obj);
 
@@ -109,7 +135,9 @@ void dumpObject(int level, void *state, UJObject obj)
 				dumpObject(level + 1, state, objiter);
 			}
 
+#ifdef VERBOSE_DUMP
 			fputc(']', stdout);
+#endif
 
 			break;
 		}
@@ -119,18 +147,24 @@ void dumpObject(int level, void *state, UJObject obj)
 			UJObject objiter = NULL;
 			UJString key;
 
+#ifdef VERBOSE_DUMP
 			prefixLine(level);
 			fputc('{', stdout);
+#endif
 
 			iter = UJBeginObject(obj);
 
 			while(UJIterObject(&iter, &key, &objiter))
 			{
+#ifdef VERBOSE_DUMP
 				fwprintf (stdout, L"%s: ", key.ptr);
+#endif
 				dumpObject(level + 1, state, objiter);
 			}
 
+#ifdef VERBOSE_DUMP
 			fputc('}', stdout);
+#endif
 			break;
 		}
 	}
@@ -147,7 +181,6 @@ int main ()
 	char buffer[32768];
 	time_t tsNow;
 	int count;
-	int once = 1;
 	size_t bytesDecoded;
 
 	UJHeapFuncs hf;
@@ -170,13 +203,8 @@ int main ()
 	{
 		UJObject obj;
 
-		obj = UJDecode(input, cbInput, NULL, &state);
-
-		if (once)
-		{
-			dumpObject(0, state, obj);
-			once = 0;
-		}
+		obj = UJDecode(input, cbInput, &hf, &state);
+		dumpObject(0, state, obj);
 
 		UJFree(state);
 

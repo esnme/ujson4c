@@ -169,7 +169,7 @@ static JSOBJ newString(struct DecoderState *ds, wchar_t *start, wchar_t *end)
 	si->str.ptr = (wchar_t *) (si + 1);
 	si->str.cchLen = len;
 
-	if (len < 32)
+	if (len < 4)
 	{
 		wchar_t *dst = si->str.ptr;
 		wchar_t *end = dst + len;
