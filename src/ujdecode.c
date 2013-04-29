@@ -37,6 +37,7 @@ www.github.com/esnme/ultrajson
 #include <math.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 typedef struct __Item
 {
@@ -298,6 +299,21 @@ static void releaseObject(struct DecoderState *ds, JSOBJ obj)
 	obj = NULL;
 }
 
+static double GetDouble(UJObject obj)
+{
+	return ((DoubleValue *) obj)->value;
+}
+
+static long GetLong(UJObject obj)
+{
+	return ((LongValue *) obj)->value;
+}
+
+static long long GetLongLong(UJObject obj)
+{
+	return ((LongLongValue *) obj)->value;
+}
+
 void UJFree(void *state)
 {
 	struct DecoderState *ds = (struct DecoderState *) state;
@@ -421,7 +437,13 @@ int UJIsObject(UJObject obj)
 
 void *UJBeginArray(UJObject arrObj)
 {
-	return ((ArrayItem *) arrObj)->head;
+	switch ( ((Item *) arrObj)->type)
+	{
+	case UJT_Array: return ((ObjectItem *) arrObj)->head;
+	default: break;
+	}
+
+	return NULL;
 }
 
 int UJIterArray(void **iter, UJObject *outObj)
@@ -441,12 +463,25 @@ int UJIterArray(void **iter, UJObject *outObj)
 
 void *UJBeginObject(UJObject objObj)
 {
-	return ((ObjectItem *) objObj)->head;
+	switch ( ((Item *) objObj)->type)
+	{
+	case UJT_Object: return ((ObjectItem *) objObj)->head;
+	default: break;
+	}
+
+	return NULL;
 }
 
 int UJIterObject(void **iter, UJString *outKey, UJObject *outValue)
 {
-	KeyPair *kp = (KeyPair *) *iter;
+	KeyPair *kp;
+
+	if (*iter == NULL)
+	{
+		return 0;
+	}
+
+	kp = (KeyPair *) *iter;
 
 	if (kp == NULL)
 	{
@@ -459,55 +494,61 @@ int UJIterObject(void **iter, UJString *outKey, UJObject *outValue)
 	return 1;
 }
 
-double UJGetDouble(UJObject obj)
-{
-	return ((DoubleValue *) obj)->value;
-}
-
-long UJGetLong(UJObject obj)
-{
-	return ((LongValue *) obj)->value;
-}
-
-long long UJGetLongLong(UJObject obj)
-{
-	return ((LongLongValue *) obj)->value;
-}
-
-int UJGetNumericAsInteger(UJObject *obj)
+long long UJNumericLongLong(UJObject *obj)
 {
 	switch ( ((Item *) obj)->type)
 	{
-	case UJT_Long: return (int) UJGetLong(obj);
-	case UJT_LongLong: return (int) UJGetLongLong(obj);
-	case UJT_Double: return (int) UJGetDouble(obj);
+	case UJT_Long: return (long long) GetLong(obj);
+	case UJT_LongLong: return (long long) GetLongLong(obj);
+	case UJT_Double: return (long long) GetDouble(obj);
 	default: break;
 	}
 
 	return 0;
 }
 
-double UJGetNumericAsDouble(UJObject *obj)
+int UJNumericInt(UJObject *obj)
 {
 	switch ( ((Item *) obj)->type)
 	{
-	case UJT_Long: return (double) UJGetLong(obj);
-	case UJT_LongLong: return (double) UJGetLongLong(obj);
-	case UJT_Double: return (double) UJGetDouble(obj);
+	case UJT_Long: return (int) GetLong(obj);
+	case UJT_LongLong: return (int) GetLongLong(obj);
+	case UJT_Double: return (int) GetDouble(obj);
+	default: break;
+	}
+
+	return 0;
+}
+
+double UJNumericFloat(UJObject *obj)
+{
+	switch ( ((Item *) obj)->type)
+	{
+	case UJT_Long: return (double) GetLong(obj);
+	case UJT_LongLong: return (double) GetLongLong(obj);
+	case UJT_Double: return (double) GetDouble(obj);
 	default: break;
 	}
 
 	return 0.0;
 }
 
-
-wchar_t *UJGetString(UJObject obj, size_t *cchOutBuffer)
+const wchar_t *UJReadString(UJObject obj, size_t *cchOutBuffer)
 {
-	if (cchOutBuffer)
+	switch ( ((Item *) obj)->type)
 	{
-		*cchOutBuffer = ( (StringItem *) obj)->str.cchLen;
+	case UJT_String:
+		if (cchOutBuffer)
+			*cchOutBuffer = ( (StringItem *) obj)->str.cchLen;
+		return ( (StringItem *) obj)->str.ptr;
+
+	default:
+		break;
 	}
-	return ( (StringItem *) obj)->str.ptr;
+
+	if (cchOutBuffer)
+		*cchOutBuffer = 0;
+	return L"";
 }
 
 const char *UJGetError(void *state)
@@ -624,7 +665,7 @@ static int checkType(int ki, const char *format, UJObject obj)
 	return 0;
 }
 
-int UJObjectUnpack(UJObject objObj, int keys, const char *format, const wchar_t **_keyNames, UJObject *outObjects)
+int UJObjectUnpack(UJObject objObj, int keys, const char *format, const wchar_t **_keyNames, ...)
 {
 	void *iter;
 	UJString key;
@@ -633,12 +674,16 @@ int UJObjectUnpack(UJObject objObj, int keys, const char *format, const wchar_t 
 	int ki;
 	int ks = 0;
 	const wchar_t *keyNames[64];
+  va_list args;
+  UJObject *outValue;
 
-	if (!UJIsObject(objObj))
+  va_start(args, _keyNames);
+
+  if (!UJIsObject(objObj))
 	{
 		return 0;
 	}
-
+  
 	iter = UJBeginObject(objObj);
 
 	if (keys > 64)
@@ -673,8 +718,13 @@ int UJObjectUnpack(UJObject objObj, int keys, const char *format, const wchar_t 
 			}
 
 			found ++;
-				
-			outObjects[ki] = value;
+
+      outValue = va_arg(args, UJObject *);
+
+      if (outValue != NULL)
+      {
+  			*outValue = value;
+      }
 			keyNames[ki] = NULL;
 
 			if (ki == ks)
@@ -683,6 +733,8 @@ int UJObjectUnpack(UJObject objObj, int keys, const char *format, const wchar_t 
 			}
 		}
 	}
+
+  va_end(args);
 
 	return found;
 }
