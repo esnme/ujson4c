@@ -79,7 +79,16 @@ void test_unpackKeys()
 			population = UJNumericLongLong(oPopulation);
 			assert(population == LLONG_MAX);
 		}
+		else
+		{
+			assert(0);
+		}
 	}
+	else
+	{
+		assert(0);
+	}
+
 
 	UJFree(state);
 }
