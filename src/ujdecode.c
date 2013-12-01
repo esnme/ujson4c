@@ -159,8 +159,9 @@ static void *alloc(struct DecoderState *ds, size_t cbSize)
 	return ret;
 }
 
-static JSOBJ newString(struct DecoderState *ds, wchar_t *start, wchar_t *end)
+static JSOBJ newString(void* context, wchar_t *start, wchar_t *end)
 {
+	struct DecoderState *ds = context;
 	size_t len;
 	StringItem *si = (StringItem *) alloc(ds, sizeof(StringItem) + (end - start + 1) * sizeof(wchar_t));
 	len = end - start;
@@ -187,8 +188,9 @@ static JSOBJ newString(struct DecoderState *ds, wchar_t *start, wchar_t *end)
 	return (JSOBJ) si;
 }
 
-static void objectAddKey(struct DecoderState *ds, JSOBJ obj, JSOBJ name, JSOBJ value)
+static void objectAddKey(void* context, JSOBJ obj, JSOBJ name, JSOBJ value)
 {
+	struct DecoderState *ds = context;
 	ObjectItem *oi = (ObjectItem *) obj;
 	KeyPair *kp = (KeyPair *) alloc(ds, sizeof(KeyPair));
 
@@ -208,8 +210,9 @@ static void objectAddKey(struct DecoderState *ds, JSOBJ obj, JSOBJ name, JSOBJ v
 	oi->tail = kp;
 }
 
-static void arrayAddItem(struct DecoderState *ds, JSOBJ obj, JSOBJ value)
+static void arrayAddItem(void* context, JSOBJ obj, JSOBJ value)
 {
+	struct DecoderState *ds = context;
 	ArrayItem *ai = (ArrayItem *) obj;
 	ArrayEntry *ae = (ArrayEntry *) alloc(ds, sizeof(ArrayEntry));
 
@@ -228,29 +231,33 @@ static void arrayAddItem(struct DecoderState *ds, JSOBJ obj, JSOBJ value)
 
 }
 
-static JSOBJ newTrue(struct DecoderState *ds)
+static JSOBJ newTrue(void* context)
 {
+	struct DecoderState *ds = context;
 	TrueValue *tv = (TrueValue *) alloc(ds, sizeof(TrueValue *));
 	tv->item.type = UJT_True;
 	return (JSOBJ) tv;
 }
 
-static JSOBJ newFalse(struct DecoderState *ds)
+static JSOBJ newFalse(void *context)
 {
+	struct DecoderState *ds = context;
 	FalseValue *fv = (FalseValue *) alloc(ds, sizeof(FalseValue *));
 	fv->item.type = UJT_False;
 	return (JSOBJ) fv;
 }
 
-static JSOBJ newNull(struct DecoderState *ds)
+static JSOBJ newNull(void *context)
 {
+	struct DecoderState *ds = context;
 	NullValue *nv = (NullValue *) alloc(ds, sizeof(NullValue *));
 	nv->item.type = UJT_Null;
 	return (JSOBJ) nv;
 }
 
-static JSOBJ newObject(struct DecoderState *ds)
+static JSOBJ newObject(void *context)
 {
+	struct DecoderState *ds = context;
 	ObjectItem *oi = (ObjectItem *) alloc(ds, sizeof(ObjectItem));
 	oi->item.type = UJT_Object;
 	oi->head = NULL;
@@ -259,8 +266,9 @@ static JSOBJ newObject(struct DecoderState *ds)
 	return (JSOBJ) oi;
 }
 
-static JSOBJ newArray(struct DecoderState *ds)
+static JSOBJ newArray(void *context)
 {
+	struct DecoderState *ds = context;
 	ArrayItem *ai = (ArrayItem *) alloc(ds, sizeof(ArrayItem));
 	ai->head = NULL;
 	ai->tail = NULL;
@@ -268,32 +276,36 @@ static JSOBJ newArray(struct DecoderState *ds)
 	return (JSOBJ) ai;
 }
 
-static JSOBJ newInt(struct DecoderState *ds, JSINT32 value)
+static JSOBJ newInt(void *context, JSINT32 value)
 {
+	struct DecoderState *ds = context;
 	LongValue *lv = (LongValue *) alloc(ds, sizeof(LongValue));
 	lv->item.type = UJT_Long;
 	lv->value = (long) value;
 	return (JSOBJ) lv;
 }
 
-static JSOBJ newLong(struct DecoderState *ds, JSINT64 value)
+static JSOBJ newLong(void *context, JSINT64 value)
 {
+	struct DecoderState *ds = context;
 	LongLongValue *llv = (LongLongValue *) alloc(ds, sizeof(LongLongValue));
 	llv->item.type = UJT_LongLong;
 	llv->value = (long long) value;
 	return (JSOBJ) llv;
 }
 
-static JSOBJ newDouble(struct DecoderState *ds, double value)
+static JSOBJ newDouble(void *context, double value)
 {
+	struct DecoderState *ds = context;
 	DoubleValue *dv = (DoubleValue *) alloc(ds, sizeof(DoubleValue));
 	dv->item.type = UJT_Double;
 	dv->value = (double) value;
 	return (JSOBJ) dv;
 }
 
-static void releaseObject(struct DecoderState *ds, JSOBJ obj)
+static void releaseObject(void *context, JSOBJ obj)
 {
+	struct DecoderState *ds = context;
 	//NOTE: Fix for C4100 warning in L4 MSVC
 	ds = NULL;
 	obj = NULL;
