@@ -506,7 +506,7 @@ int UJIterObject(void **iter, UJString *outKey, UJObject *outValue)
 	return 1;
 }
 
-long long UJNumericLongLong(UJObject *obj)
+long long UJNumericLongLong(UJObject obj)
 {
 	switch ( ((Item *) obj)->type)
 	{
@@ -519,7 +519,7 @@ long long UJNumericLongLong(UJObject *obj)
 	return 0;
 }
 
-int UJNumericInt(UJObject *obj)
+int UJNumericInt(UJObject obj)
 {
 	switch ( ((Item *) obj)->type)
 	{
@@ -532,7 +532,7 @@ int UJNumericInt(UJObject *obj)
 	return 0;
 }
 
-double UJNumericFloat(UJObject *obj)
+double UJNumericFloat(UJObject obj)
 {
 	switch ( ((Item *) obj)->type)
 	{
@@ -731,7 +731,7 @@ int UJObjectUnpack(UJObject objObj, int keys, const char *format, const wchar_t 
 
 			found ++;
 
-      outValue = va_arg(args, UJObject *);
+      outValue = va_arg(args, UJObject);
 
       if (outValue != NULL)
       {
