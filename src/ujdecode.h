@@ -189,8 +189,6 @@ extern "C" {
 	int UJIterObject(void **iter, UJString *outKey, UJObject *outValue);
 
 	/*
-
-	/*
 	===============================================================================
 	Unpacks an Object by matching the key name with the requested format 
 
